@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodieZone | Premium Dining & Analytics Ready</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #ff4757;
+            --dark: #2f3542;
+            --light: #f1f2f6;
+            --white: #ffffff;
+            --bg: #ffffff;
+            --text: #2f3542;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --header-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        .dark-theme {
+            --bg: #1e272e;
+            --text: #ffffff;
+            --light: #2d3436;
+            --white: #2d3436;
+            --header-bg: rgba(30, 39, 46, 0.95);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: background 0.3s, color 0.3s; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+        /* --- Header & Nav --- */
+        header {
+            background: var(--header-bg); backdrop-filter: blur(10px);
+            position: fixed; width: 100%; top: 0; z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 5%; max-width: 1200px; margin: auto;
+        }
+        .logo { font-size: 1.6rem; font-weight: 700; color: var(--primary); cursor: pointer; }
+        .nav-actions { display: flex; align-items: center; gap: 20px; }
+        .theme-icon, .cart-icon { cursor: pointer; font-size: 1.2rem; position: relative; }
+        .cart-count {
+            position: absolute; top: -8px; right: -10px;
+            background: var(--primary); color: white;
+            font-size: 0.7rem; padding: 2px 6px; border-radius: 50%;
+        }
+
+        /* --- Hero Slider --- */
+        #home {
+            height: 100vh; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; color: white;
+        }
+        .slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0; transition: opacity 1s ease-in-out; z-index: -1;
+        }
+        .slide.active { opacity: 1; }
+        .slide::after {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+        }
+        .hero-content h1 { font-size: clamp(2.5rem, 8vw, 4.5rem); margin-bottom: 1rem; }
+
+        /* --- General UI --- */
+        section { padding: 100px 5%; max-width: 1200px; margin: auto; }
+        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 50px; }
+        .btn {
+            background: var(--primary); color: white; padding: 12px 30px;
+            border-radius: 50px; text-decoration: none; font-weight: 600;
+            display: inline-block; transition: 0.4s; border: none; cursor: pointer;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,71,87,0.4); }
+
+        /* --- Menu Grid --- */
+        .menu-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px;
+        }
+        .menu-item {
+            background: var(--white); border-radius: 20px; overflow: hidden;
+            box-shadow: var(--shadow); transition: 0.6s; opacity: 0; transform: translateY(30px);
+        }
+        .menu-item.visible { opacity: 1; transform: translateY(0); }
+        .menu-item img { width: 100%; height: 220px; object-fit: cover; }
+        .menu-info { padding: 25px; }
+        .price { color: var(--primary); font-weight: 700; font-size: 1.3rem; display: block; margin: 10px 0; }
+
+        /* --- Cart Modal --- */
+        #cartModal {
+            position: fixed; top: 0; right: -100%; width: 350px; height: 100%;
+            background: var(--bg); z-index: 2000; transition: 0.5s;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.2); padding: 40px 30px;
+        }
+        #cartModal.active { right: 0; }
+        .close-cart { font-size: 2rem; cursor: pointer; float: right; }
+
+        /* --- Contact Form --- */
+        #contact { background: var(--light); border-radius: 40px; margin-bottom: 60px; }
+        .contact-container { display: flex; flex-wrap: wrap; gap: 50px; }
+        .contact-form { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
+        .contact-form input, .contact-form textarea {
+            padding: 15px; border: none; border-radius: 12px; background: var(--bg); color: var(--text); outline: none;
+        }
+
+        footer { background: var(--dark); color: white; padding: 40px 5%; text-align: center; }
+
+        @media (max-width: 768px) { #cartModal { width: 100%; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav>
+            <div class="logo">FoodieZone</div>
+            <div class="nav-actions">
+                <i class="fas fa-moon theme-icon" id="theme-toggle"></i>
+                <div class="cart-icon" onclick="toggleCart()">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div id="cartModal">
+        <span class="close-cart" onclick="toggleCart()">&times;</span>
+        <h2 style="margin-bottom: 20px;">Your Basket</h2>
+        <div id="cartItems">Your cart is empty!</div>
+        <button class="btn" style="width: 100%; margin-top: 30px;">Checkout Now</button>
+    </div>
+
+    <section id="home">
+        <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1350&q=80')"></div>
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1350&q=80')"></div>
+        <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&w=1350&q=80')"></div>
+        
+        <div class="hero-content">
+            <h1 id="hero-text">Savor the Moment</h1>
+            <p>Premium ingredients, master chefs, unforgettable taste.</p><br>
+            <a href="#menu" class="btn">View Our Menu</a>
+        </div>
+    </section>
+
+    <section id="menu">
+        <h2 class="section-title">Chef's Specials</h2>
+        <div class="menu-grid">
+            <div class="menu-item">
+                <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500&q=80" alt="Pizza">
+                <div class="menu-info">
+                    <h3>Artisan Pizza</h3>
+                    <span class="price">$14.00</span>
+                    <button class="btn" onclick="addToCart('Artisan Pizza', 14)">Add to Cart</button>
+                </div>
+            </div>
+            <div class="menu-item">
+                <img src="https://images.unsplash.com/photo-1561758033-d89a9ad46330?auto=format&fit=crop&w=500&q=80" alt="Burger">
+                <div class="menu-info">
+                    <h3>Zesty Burger</h3>
+                    <span class="price">$11.00</span>
+                    <button class="btn" onclick="addToCart('Zesty Burger', 11)">Add to Cart</button>
+                </div>
+            </div>
+            <div class="menu-item">
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80" alt="Salad">
+                <div class="menu-info">
+                    <h3>Healthy Bowl</h3>
+                    <span class="price">$12.50</span>
+                    <button class="btn" onclick="addToCart('Healthy Bowl', 12.50)">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2 class="section-title">Get In Touch</h2>
+        <div class="contact-container">
+            <div class="contact-form">
+                <input type="text" id="contactName" placeholder="Your Name">
+                <input type="email" id="contactEmail" placeholder="Your Email">
+                <textarea rows="5" id="contactMsg" placeholder="Your Message"></textarea>
+                <button class="btn" id="submitForm">Send Message</button>
+            </div>
+            <div class="contact-info">
+                <h3>Opening Hours</h3>
+                <p>Mon - Sun: 9:00 AM - 11:00 PM</p><br>
+                <h3>Location</h3>
+                <p>123 Gourmet Ave, Food City, FC 5678</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 FoodieZone | Stay Hungry, Stay Humble.</p>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. DATA LAYER INITIALIZATION
+        // ==========================================
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'page_view',
+            'page_title': document.title,
+            'user_type': 'guest'
+        });
+
+        // ==========================================
+        // 2. HERO SLIDER LOGIC
+        // ==========================================
+        const slides = document.querySelectorAll('.slide');
+        const heroText = document.getElementById('hero-text');
+        const phrases = ["Savor the Moment", "Freshly Prepared", "Taste the Magic"];
+        let currentSlide = 0;
+
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+            heroText.innerText = phrases[currentSlide];
+        }
+        setInterval(nextSlide, 5000);
+
+        // ==========================================
+        // 3. DARK MODE TOGGLE & TRACKING
+        // ==========================================
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.onclick = () => {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            themeBtn.classList.toggle('fa-sun', isDark);
+            themeBtn.classList.toggle('fa-moon', !isDark);
+            
+            window.dataLayer.push({
+                'event': 'theme_toggle',
+                'selected_theme': isDark ? 'dark' : 'light'
+            });
+        };
+
+        // ==========================================
+        // 4. SCROLL REVEAL ANIMATION
+        // ==========================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.menu-item').forEach(item => observer.observe(item));
+
+        // ==========================================
+        // 5. CART & E-COMMERCE TRACKING
+        // ==========================================
+        let cart = [];
+        let count = 0;
+
+        function toggleCart() {
+            document.getElementById('cartModal').classList.toggle('active');
+        }
+
+        function addToCart(name, price) {
+            cart.push({name, price});
+            count++;
+            updateCartUI();
+
+            // DATA LAYER PUSH
+            window.dataLayer.push({
+                'event': 'add_to_cart',
+                'ecommerce': {
+                    'currency': 'USD',
+                    'value': price,
+                    'items': [{
+                        'item_name': name,
+                        'price': price,
+                        'quantity': 1
+                    }]
+                }
+            });
+            console.log('DataLayer Event: add_to_cart pushed for ' + name);
+
+            // Button Feedback
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "Added!";
+            btn.style.background = "#2ed573";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "#ff4757";
+            }, 1000);
+        }
+
+        function updateCartUI() {
+            document.getElementById('cartCount').innerText = count;
+            const cartItems = document.getElementById('cartItems');
+            if (cart.length === 0) {
+                cartItems.innerHTML = "Your cart is empty!";
+            } else {
+                cartItems.innerHTML = cart.map(item => 
+                    `<div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:5px;">
+                        <span>${item.name}</span>
+                        <strong>$${item.price.toFixed(2)}</strong>
+                    </div>`
+                ).join('');
+                const total = cart.reduce((sum, item) => sum + item.price, 0);
+                cartItems.innerHTML += `<div style="margin-top:20px; font-weight:700; font-size:1.2rem; text-align:right;">Total: $${total.toFixed(2)}</div>`;
+            }
+        }
+
+        // ==========================================
+        // 6. FORM SUBMISSION TRACKING
+        // ==========================================
+        document.getElementById('submitForm').onclick = () => {
+            const name = document.getElementById('contactName').value;
+            window.dataLayer.push({
+                'event': 'form_submission',
+                'form_id': 'contact_main',
+                'has_name': name ? true : false
+            });
+            alert('Analytics Event Recorded: Form Submitted!');
+        };
+    </script>
+</body>
+</html>
