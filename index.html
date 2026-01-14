@@ -31,6 +31,18 @@
         html { scroll-behavior: smooth; }
         body { background: var(--bg); color: var(--text); overflow-x: hidden; }
 
+        /* --- Analytics Pop-up Notification (Toast) --- */
+        #analytics-toast {
+            position: fixed; bottom: 20px; left: 20px; z-index: 3000;
+            background: #2f3542; color: #00ff88; padding: 15px 25px;
+            border-radius: 10px; border-left: 5px solid #00ff88;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            font-size: 0.9rem; transform: translateX(-150%);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #analytics-toast.show { transform: translateX(0); }
+        #analytics-toast i { margin-right: 10px; color: #00ff88; }
+
         /* --- Header & Nav --- */
         header {
             background: var(--header-bg); backdrop-filter: blur(10px);
@@ -114,6 +126,11 @@
     </style>
 </head>
 <body>
+
+    <div id="analytics-toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Data Layer Successful</span>
+    </div>
 
     <header>
         <nav>
@@ -201,10 +218,41 @@
 
     <script>
         // ==========================================
-        // 1. DATA LAYER INITIALIZATION
+        // ANALYTICS HELPER: SHOW POP-UP (TOAST)
+        // ==========================================
+        function showAnalyticsToast(eventName) {
+            const toast = document.getElementById('analytics-toast');
+            const message = document.getElementById('toast-message');
+            message.innerText = `Success: Event [${eventName}] Pushed!`;
+            
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ==========================================
+        // 1. DATA LAYER INITIALIZATION (GTM & ADOBE)
         // ==========================================
         window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({
+        window.adobeDataLayer = window.adobeDataLayer || [];
+
+        function pushToAllLayers(payload) {
+            // Push to Google Data Layer
+            window.dataLayer.push(payload);
+            
+            // Push to Adobe Data Layer
+            window.adobeDataLayer.push(payload);
+            
+            // Show Pop-up on Website
+            showAnalyticsToast(payload.event);
+            
+            console.log('✅ Google Data Layer:', window.dataLayer);
+            console.log('✅ Adobe Data Layer:', window.adobeDataLayer);
+        }
+
+        // Initial Page View
+        pushToAllLayers({
             'event': 'page_view',
             'page_title': document.title,
             'user_type': 'guest'
@@ -236,7 +284,7 @@
             themeBtn.classList.toggle('fa-sun', isDark);
             themeBtn.classList.toggle('fa-moon', !isDark);
             
-            window.dataLayer.push({
+            pushToAllLayers({
                 'event': 'theme_toggle',
                 'selected_theme': isDark ? 'dark' : 'light'
             });
@@ -268,8 +316,8 @@
             count++;
             updateCartUI();
 
-            // DATA LAYER PUSH
-            window.dataLayer.push({
+            // PUSH TO BOTH DATA LAYERS
+            pushToAllLayers({
                 'event': 'add_to_cart',
                 'ecommerce': {
                     'currency': 'USD',
@@ -281,7 +329,6 @@
                     }]
                 }
             });
-            console.log('DataLayer Event: add_to_cart pushed for ' + name);
 
             // Button Feedback
             const btn = event.target;
@@ -316,12 +363,11 @@
         // ==========================================
         document.getElementById('submitForm').onclick = () => {
             const name = document.getElementById('contactName').value;
-            window.dataLayer.push({
+            pushToAllLayers({
                 'event': 'form_submission',
                 'form_id': 'contact_main',
                 'has_name': name ? true : false
             });
-            alert('Analytics Event Recorded: Form Submitted!');
         };
     </script>
 </body>
